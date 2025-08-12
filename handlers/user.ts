@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import User from '../models/user'
 import bcrypt from 'bcrypt'
 import { createJWT } from "../auth/createJWT"
+import { userLoginSchema, userRegisterSchema } from "../validations/user"
 
 //register new user
 export const userRegister = async (req: Request, res: Response) => {
@@ -13,6 +14,12 @@ export const userRegister = async (req: Request, res: Response) => {
         return;
     }
 
+    //inputs validation
+    const { error } = userRegisterSchema.validate(req.body);
+    if (error) {
+        res.status(400).json({ message: error.details[0].message });
+        return;
+    }
 
     //check if user already exists
     const existingUser = await User.findOne({ email });
@@ -51,9 +58,16 @@ export const userLogin = async (req: Request, res: Response) => {
         return;
     }
 
+    //inputs validation
+    const { error } = userLoginSchema.validate(req.body);
+    if (error) {
+        res.status(400).json({ message: error.details[0].message });
+        return;
+    }
+
     const user = await User.findOne({ email });
 
-    //check if user exsit
+    //check if user exists
     if (!user) {
         res.status(400).json({ message: "User does not exist" });
         return;
